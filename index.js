@@ -27,12 +27,17 @@ async function run() {
 
     const foodCollection = client.db('yumYacht').collection('allFoods');
 
-    app.get('/topFoods', async (req, res) => {
+    app.get('/top-foods', async (req, res) => {
       const result = await foodCollection
         .find()
         .sort({ purchaseCount: -1 })
         .limit(6)
         .toArray();
+      res.send(result);
+    });
+
+    app.get('/all-foods', async (req, res) => {
+      const result = await foodCollection.find().toArray();
       res.send(result);
     });
 
