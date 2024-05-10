@@ -41,6 +41,15 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/search-foods', async (req, res) => {
+      const query = req.query.search;
+      const result = await foodCollection
+        .find({ foodName: { $regex: query, $options: 'i' } })
+        .toArray();
+      console.log(result);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
     console.log(
