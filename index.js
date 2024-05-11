@@ -89,6 +89,11 @@ async function run() {
       const result = await feedbackCollection.find().toArray();
       res.send(result);
     });
+    app.post('/feedback', async (req, res) => {
+      const query = req.body;
+      const result = await feedbackCollection.insertOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
