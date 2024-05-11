@@ -26,6 +26,16 @@ async function run() {
     await client.connect();
 
     const foodCollection = client.db('yumYacht').collection('allFoods');
+    const userCollection = client.db('yumYacht').collection('user');
+    const purchasedCollection = client
+      .db('yumYacht')
+      .collection('purchasedData');
+
+    app.post('/user', async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
     app.get('/top-foods', async (req, res) => {
       const result = await foodCollection
@@ -53,6 +63,12 @@ async function run() {
     app.get('/foodDetails/:id', async (req, res) => {
       const id = req.params.id;
       const result = await foodCollection.findOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+    app.post('/purchase', async (req, res) => {
+      const data = req.body;
+      const result = await purchasedCollection.insertOne(data);
       res.send(result);
     });
 
