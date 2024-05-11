@@ -30,13 +30,16 @@ async function run() {
     const purchasedCollection = client
       .db('yumYacht')
       .collection('purchasedData');
+    const feedbackCollection = client.db('yumYacht').collection('feedback');
 
+    // store user data in dataBase
     app.post('/user', async (req, res) => {
       const user = req.body;
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
 
+    // top-6 food api
     app.get('/top-foods', async (req, res) => {
       const result = await foodCollection
         .find()
@@ -46,11 +49,13 @@ async function run() {
       res.send(result);
     });
 
+    // all foods api
     app.get('/all-foods', async (req, res) => {
       const result = await foodCollection.find().toArray();
       res.send(result);
     });
 
+    // api for search functionality in all food section
     app.get('/search-foods', async (req, res) => {
       const query = req.query.search;
       const result = await foodCollection
@@ -60,12 +65,14 @@ async function run() {
       res.send(result);
     });
 
+    // food details api for single food data
     app.get('/foodDetails/:id', async (req, res) => {
       const id = req.params.id;
       const result = await foodCollection.findOne({ _id: new ObjectId(id) });
       res.send(result);
     });
 
+    // store purchased details on database
     app.post('/purchase', async (req, res) => {
       const data = req.body;
       const result = await purchasedCollection.insertOne(data);
@@ -74,6 +81,12 @@ async function run() {
       };
       const query = { _id: new ObjectId(data.foodId) };
       const updateCount = await foodCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
+
+    // get api for customer feedback
+    app.get('/feedback', async (req, res) => {
+      const result = await feedbackCollection.find().toArray();
       res.send(result);
     });
 
