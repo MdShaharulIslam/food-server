@@ -39,6 +39,13 @@ async function run() {
       res.send(result);
     });
 
+    // user added food item api
+    app.get('/myList', async (req, res) => {
+      const email = req.query.email;
+      const result = await foodCollection.find({ userEmail: email }).toArray();
+      res.send(result);
+    });
+
     // top-6 food api
     app.get('/top-foods', async (req, res) => {
       const result = await foodCollection
