@@ -45,6 +45,38 @@ async function run() {
       const result = await foodCollection.find({ userEmail: email }).toArray();
       res.send(result);
     });
+    app.get('/myOrder', async (req, res) => {
+      const email = req.query.email;
+      const result = await purchasedCollection.find({ email }).toArray();
+      res.send(result);
+    });
+    app.delete('/myOrder', async (req, res) => {
+      const id = req.query.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await purchasedCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // update user added item
+    app.patch('/all-foods', async (req, res) => {
+      const updatedData = req.body;
+      console.log(updatedData);
+      const id = req.query.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          foodName: updatedData.foodName,
+          quantity: updatedData.quantity,
+          price: updatedData.price,
+          foodOrigin: updatedData.foodOrigin,
+          foodImage: updatedData.foodImage,
+          foodCategory: updatedData.foodCategory,
+          description: updatedData.description,
+        },
+      };
+      const result = await foodCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
     // top-6 food api
     app.get('/top-foods', async (req, res) => {
@@ -53,6 +85,13 @@ async function run() {
         .sort({ purchaseCount: -1 })
         .limit(6)
         .toArray();
+      res.send(result);
+    });
+
+    // post food item api
+    app.post('/all-foods', async (req, res) => {
+      const post = req.body;
+      const result = await foodCollection.insertOne(post);
       res.send(result);
     });
 
