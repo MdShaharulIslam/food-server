@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -13,6 +14,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.2fh4pkj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -25,6 +27,24 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+// custom middlewares
+
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+
+  if (!token) {
+    return res.status(401).send({ message: 'unauthorized access' });
+  }
+  jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: 'unauthorized access' });
+    }
+    req.user = decoded;
+    console.log('middle', req.user);
+    next();
+  });
+};
 
 async function run() {
   try {
@@ -67,13 +87,19 @@ async function run() {
     });
 
     // user added food item api
-    app.get('/myList', async (req, res) => {
+    app.get('/myList', verifyToken, async (req, res) => {
       const email = req.query.email;
+      if (email !== req.user.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
       const result = await foodCollection.find({ userEmail: email }).toArray();
       res.send(result);
     });
-    app.get('/myOrder', async (req, res) => {
+    app.get('/myOrder', verifyToken, async (req, res) => {
       const email = req.query.email;
+      if (email !== req.user.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
       const result = await purchasedCollection.find({ email }).toArray();
       res.send(result);
     });
@@ -140,6 +166,14 @@ async function run() {
 
     // food details api for single food data
     app.get('/foodDetails/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await foodCollection.findOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+    app.get('/purchase/:id', verifyToken, async (req, res) => {
+      if (req.query.email !== req.user.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
       const id = req.params.id;
       const result = await foodCollection.findOne({ _id: new ObjectId(id) });
       res.send(result);
