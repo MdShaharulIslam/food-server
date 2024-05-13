@@ -9,7 +9,11 @@ const port = process.env.PORT || 5000;
 // middlewares
 app.use(
   cors({
-    origin: ['http://localhost:5173'],
+    origin: [
+      'http://localhost:5173',
+      'https://yum-yacht.web.app',
+      'https://yum-yacht.firebaseapp.com',
+    ],
     credentials: true,
   })
 );
@@ -49,7 +53,13 @@ const verifyToken = (req, res, next) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    };
 
     const foodCollection = client.db('yumYacht').collection('allFoods');
     const userCollection = client.db('yumYacht').collection('user');
@@ -64,19 +74,15 @@ async function run() {
         expiresIn: '1h',
       });
 
-      res
-        .cookie('token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        })
-        .send({ success: true });
+      res.cookie('token', token, cookieOptions).send({ success: true });
     });
 
     app.post('/logout', async (req, res) => {
       const user = req.body;
       console.log('logging out', user);
-      res.clearCookie('token', { maxAge: 0 }).send({ success: true });
+      res
+        .clearCookie('token', { ...cookieOptions, maxAge: 0 })
+        .send({ success: true });
     });
 
     // store user data in dataBase
@@ -97,14 +103,20 @@ async function run() {
     });
     app.get('/myOrder', verifyToken, async (req, res) => {
       const email = req.query.email;
+      console.log('my order', email, req.user.email);
       if (email !== req.user.email) {
         return res.status(403).send({ message: 'forbidden access' });
       }
       const result = await purchasedCollection.find({ email }).toArray();
       res.send(result);
     });
-    app.delete('/myOrder', async (req, res) => {
+    app.delete('/myOrder', verifyToken, async (req, res) => {
       const id = req.query.id;
+      const email = req.query.email;
+      console.log('delete my order', email, req.user.email);
+      if (email !== req.user.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
       const query = { _id: new ObjectId(id) };
       const result = await purchasedCollection.deleteOne(query);
       res.send(result);
@@ -196,6 +208,10 @@ async function run() {
       const result = await feedbackCollection.find().toArray();
       res.send(result);
     });
+    app.get('/testimonials', async (req, res) => {
+      const result = await feedbackCollection.find().limit(4).toArray();
+      res.send(result);
+    });
     app.post('/feedback', async (req, res) => {
       const query = req.body;
       const result = await feedbackCollection.insertOne(query);
@@ -203,7 +219,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db('admin').command({ ping: 1 });
+    // await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!'
     );
