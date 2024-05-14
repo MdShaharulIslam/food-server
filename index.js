@@ -9,11 +9,7 @@ const port = process.env.PORT || 5000;
 // middlewares
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      'https://yum-yacht.web.app',
-      'https://yum-yacht.firebaseapp.com',
-    ],
+    origin: ['https://yum-yacht.web.app', 'https://yum-yacht.firebaseapp.com'],
     credentials: true,
   })
 );
@@ -123,7 +119,7 @@ async function run() {
     });
 
     // update user added item
-    app.patch('/all-foods', async (req, res) => {
+    app.patch('/all-foods', verifyToken, async (req, res) => {
       const updatedData = req.body;
       console.log(updatedData);
       const id = req.query.id;
