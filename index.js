@@ -9,7 +9,11 @@ const port = process.env.PORT || 5000;
 // middlewares
 app.use(
   cors({
-    origin: ['https://yum-yacht.web.app', 'https://yum-yacht.firebaseapp.com'],
+    origin: [
+      'https://yum-yacht.web.app',
+      'https://yum-yacht.firebaseapp.com',
+      'http://localhost:5173',
+    ],
     credentials: true,
   })
 );
@@ -85,6 +89,29 @@ async function run() {
     app.post('/user', async (req, res) => {
       const user = req.body;
       const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.get('/users', async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await userCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+    app.patch('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'admin',
+        },
+      };
+      const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
 
