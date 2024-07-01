@@ -88,6 +88,11 @@ async function run() {
     // store user data in dataBase
     app.post('/user', async (req, res) => {
       const user = req.body;
+      const query = { email: user?.email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: 'User already exist', insertedId: null });
+      }
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
@@ -113,6 +118,19 @@ async function run() {
       };
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
+    });
+
+    app.get('/userRole/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.user.email) {
+        return res.status(403).send({ message: 'Unauthorized access' });
+      }
+      const user = await userCollection.findOne({ email });
+      let userRole = '';
+      if (user?.role === 'admin') {
+        userRole = 'admin';
+      }
+      res.send({ userRole });
     });
 
     // user added food item api
