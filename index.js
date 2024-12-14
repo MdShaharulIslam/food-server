@@ -10,8 +10,7 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
-      'https://yum-yacht.web.app',
-      'https://yum-yacht.firebaseapp.com',
+    
       'http://localhost:5173',
     ],
     credentials: true,
@@ -21,7 +20,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.2fh4pkj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.lcvsatz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -61,12 +60,10 @@ async function run() {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
     };
 
-    const foodCollection = client.db('yumYacht').collection('allFoods');
-    const userCollection = client.db('yumYacht').collection('user');
-    const purchasedCollection = client
-      .db('yumYacht')
-      .collection('purchasedData');
-    const feedbackCollection = client.db('yumYacht').collection('feedback');
+    const foodCollection = client.db('fooddaily').collection('allFoods');
+    const userCollection = client.db('fooddaily').collection('user');
+    const purchasedCollection = client.db('fooddaily').collection('purchasedData');
+    const feedbackCollection = client.db('fooddaily').collection('feedback');
 
     app.post('/jwt', async (req, res) => {
       const user = req.body;
