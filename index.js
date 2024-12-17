@@ -71,18 +71,18 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/users', async (req, res) => {
+    app.get('/user', async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
 
-    app.delete('/users/:id', async (req, res) => {
+    app.delete('/user/:id', async (req, res) => {
       const id = req.params.id;
       const result = await userCollection.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
 
-    app.patch('/users/:id', async (req, res) => {
+    app.patch('/user/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
